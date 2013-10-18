@@ -1,0 +1,168 @@
+<apex:page title="Date Picker Demo 2" tabStyle="Special_Event__c" controller="DatePickerDemo2Controller" sidebar="false">
+
+    <head> 
+        <apex:stylesheet value="https://code.jquery.com/ui/1.10.3/themes/ui-lightness/jquery-ui.css"  />
+        <apex:includeScript value="https://code.jquery.com/jquery-1.9.1.js" />
+        <apex:includeScript value="https://code.jquery.com/ui/1.10.3/jquery-ui.js" />
+    </head>
+
+    <body>
+        
+        <apex:form>
+            <apex:pageMessages id="errors" />
+            <apex:pageBlock title="Date Picker Demo 2" mode="edit">
+                
+                <table width="100%" border="0">
+                    <tr>  
+                        <td width="20%" valign="top">
+                            <apex:pageBlock title="Parameters" mode="edit" id="criteria">
+                                
+                                <apex:actionFunction name="queryBuilder" action="{!buildQueryString}" rerender="queryString,errors">
+                                    <apex:param name="name" value="" />
+                                    <apex:param name="event_start_date_from" value="" />
+                                    <apex:param name="event_start_date_to" value="" />
+                                </apex:actionFunction>
+ 
+                                <!-- fields for alternate date format (needed for SOQL queries) -->
+                                <input type="hidden" name="event_start_date_from_alternate" id="event_start_date_from_alternate" />
+                                <input type="hidden" name="event_start_date_to_alternate" id="event_start_date_to_alternate" />
+                                
+
+                                <table cellpadding="2" cellspacing="2">
+                                    <tr>
+                                        <td style="font-weight:bold;width:100px;">
+                                            Event Name
+                                        </td>
+                                        <td>
+                                            <input type="text" id="name" placeholder="Part of event name" style="height:20px; width:200px;" />
+                                        </td>
+                                    </tr>
+                                    <tr><td colspan="2">&nbsp;</td></tr>                                  
+                                    <tr>
+                                        <td colspan="2" style="font-weight:bold;text-align:center;">
+                                            Event Date Range
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight:bold;">
+                                            <label for="event_start_date_from">Start on/after</label>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="event_start_date_from" id="event_start_date_from" placeholder="On or after" style="height:20px; width:200px;" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight:bold;">
+                                            <label for="event_start_date_to">Start on/before</label>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="event_start_date_to" id="event_start_date_to" placeholder="On or before" style="height:20px; width:200px;" />
+                                        </td>
+                                    </tr>
+                                    
+                                </table>
+                                <p />
+                                <div align="center">    
+                                    <button class="ui-button" style="width:128px;" onclick="buildSOQLQuery();return false;" >
+                                        <span class="ui-button-text">Build Query</span>
+                                    </button>
+                                    <button class="ui-button" style="width:128px;" onclick="clearQuery();return false;" >
+                                        <span class="ui-button-text">Clear</span>
+                                    </button>
+                                </div>
+                            
+                            
+                            </apex:pageBlock>
+ 
+                        </td>
+                        <td width="80%" valign="top">
+                            <apex:pageBlock title="SOQL Query" id="queryString">
+                                <apex:outputText value="{!soqlQuery}" />           
+                            </apex:pageBlock> 
+                        </td>
+                    </tr>
+                </table>
+                
+                   
+            </apex:pageBlock>
+ 
+        </apex:form>
+
+
+
+        <!-- All my js code goes here -->
+
+        <script type="text/javascript">
+      
+            j$ = jQuery.noConflict();
+        
+            j$(document).ready(function() {
+                j$( "#event_start_date_from" ).datepicker({
+                    defaultDate: "+1w",
+                    changeMonth: true,
+                    changeYear: true,
+                    numberOfMonths: 1,
+                    dateFormat:"mm/dd/yy",
+                    altField: "#event_start_date_from_alternate",
+                    altFormat: "yy-mm-dd",
+                    showAnim: "slide",
+                    onClose: function( selectedDate ) {
+                        j$( "#event_start_date_to" ).datepicker( "option", "minDate", selectedDate );
+                    }
+                });
+                j$( "#event_start_date_to" ).datepicker({
+                    defaultDate: "+1w",
+                    changeMonth: true,
+                    numberOfMonths: 1,
+                    changeYear: true,
+                    showAnim: "slide",
+                    dateFormat:"mm/dd/yy",
+                    altField: "#event_start_date_to_alternate",
+                    altFormat: "yy-mm-dd",
+                    onClose: function( selectedDate ) {
+                        j$( "#event_start_date_from" ).datepicker( "option", "maxDate", selectedDate );
+                    }
+                });
+                
+                /* Set the jQueryUI button style */
+                j$("button, input:submit, input:button").button();
+                
+            })
+
+            function buildSOQLQuery() {
+            
+                queryBuilder(
+                    j$("#name").val(),
+                    j$("#event_start_date_alternate").val(),    //we need to pass the alternate field because it has the right date format
+                    j$("#event_start_date_to_alternate").val()  //we need to pass the alternate field because it has the right date format
+                );
+            }
+      
+            function clearQuery() {
+                
+                j$("#name").val('');
+
+                /* Reset the dates */
+                j$("#event_start_date_from").val("");
+                j$("#event_start_date_to").val("");
+                j$("#event_start_date_from_alternate").val("");
+                j$("#event_start_date_to_alternate").val("");
+
+                /* IMPORTANT: Reset the min and max bounds used in the previous date range */
+                j$("#event_start_date_from", "#event_start_date_to").datepicker( "option", "maxDate", null );
+                j$("#event_start_date_from", "#event_start_date_to").datepicker( "option", "minDate", null );
+              
+                //Reset to the default query
+                buildSOQLQuery();
+            }
+            
+        </script>
+
+
+    </body>
+
+
+
+  
+
+</apex:page>
